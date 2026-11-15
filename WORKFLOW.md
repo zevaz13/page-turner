@@ -95,7 +95,13 @@ awk '/KEY_VOLUMEUP +DOWN/{t=$2+0} /KEY_VOLUMEUP +UP/{printf "hold %.0f ms\n",($2
 - Claude Code in a terminal on the computer, in `~/HobbyProjects/page-turner/`: writes the Kotlin app, builds, installs to the tablet over adb, and reads `adb logcat` while the remote is pressed.
 - Tablet: only developer options and the app. The Claude app on the tablet is not needed.
 
-**Toolchain (decision pending)**
+**Toolchain (installed 2026-11-15)**
+- JDK: `openjdk-21-jdk-headless` (apt).
+- SDK root: `~/Android/Sdk`. No `ANDROID_HOME` and no PATH changes; Gradle finds the SDK through `sdk.dir` in each project's `local.properties` (not committed).
+- SDK manager: `~/Android/Sdk/cmdline-tools/latest/bin/sdkmanager --sdk_root=$HOME/Android/Sdk --list_installed`. cmdline-tools 23 also ships a new `android` CLI (`android sdk` replaces `sdkmanager`); `sdkmanager` still works.
+- Installed: `cmdline-tools;latest` (23.0), `platforms;android-34`. Build-tools are downloaded by the Android Gradle Plugin on the first build.
+
+**Toolchain options considered (2026-11-13)**
 - Android Studio: Google lists 8 GB RAM and 8 GB free disk for Studio alone, 16 GB each with the emulator. Heavy.
 - Lighter route: adb plus Android command-line tools, a JDK, Gradle and one SDK platform/build-tools package, driven from the terminal. No IDE, no emulator.
 - Decide after `free -h` and `df -h ~` on the computer.

@@ -9,8 +9,9 @@ Where we discuss decisions and tick off milestones. Measurements and findings st
   - [x] Git repository (2026-11-15), pushed to private GitHub repo `zevaz13/page-turner`
   - [x] Wireless adb connected (2026-11-15)
   - [x] Tablet details recorded (2026-11-15): SM-T733, Android 14, SDK 34
-  - [ ] Toolchain plan approved
-  - [ ] Toolchain installed and checked with a "hello" APK on the tablet
+  - [x] Toolchain plan approved (2026-11-15)
+  - [x] JDK 21 + Android cmdline-tools 23.0 + `platforms;android-34` installed (2026-11-15, SDK dir 313 MB)
+  - [ ] Gradle wrapper and "hello" APK installed on the tablet
   - [x] Idle wake-up test, first pass (2026-11-15): 5-min idle timeout; waking press lost in 1 of 2 trials
   - [ ] Waking-press loss rate: 5-10 more trials
   - [ ] Foot-press hold times measured
@@ -43,18 +44,18 @@ Where we discuss decisions and tick off milestones. Measurements and findings st
 | RAM | 15 GiB, about 7 GiB available | Enough for a Gradle daemon; no emulator planned |
 | Disk | 141 GB free | No constraint |
 | CPU | 8 threads | |
-| Java | not installed | |
-| Android SDK | none (`$ANDROID_HOME` unset, no `~/Android/Sdk`) | |
+| Java | OpenJDK 21.0.13 (apt) | |
+| Android SDK | `~/Android/Sdk` (no `$ANDROID_HOME`, by choice) | |
 | adb | 34.0.4 (apt) | Wireless pairing works; mDNS discovery does not |
 | git | 2.43, user configured | |
 
-## Proposed toolchain (pending approval; sizes are estimates to confirm before downloading)
+## Toolchain (installed 2026-11-15 except Gradle; Gradle sizes are estimates)
 
 | Part | How | Approx. size |
 |---|---|---|
-| JDK 17 headless | `sudo apt install openjdk-17-jdk-headless` | ~250 MB installed |
-| Android command-line tools | Zip from developer.android.com into `~/Android/Sdk/cmdline-tools/latest` | ~150 MB |
-| SDK `platforms;android-34` + `build-tools;34.x` | `sdkmanager` | ~150-250 MB |
+| JDK 21 headless | `sudo apt install openjdk-21-jdk-headless` | 130 MB download, 293 MB installed |
+| Android command-line tools 23.0 | Zip from dl.google.com, SHA-1 checked, into `~/Android/Sdk/cmdline-tools/latest` | 181 MB |
+| SDK `platforms;android-34` | `sdkmanager` | 63 MB; build-tools left to the Android Gradle Plugin to fetch |
 | platform-tools | Skip; reuse the apt adb unless versions clash | 0 |
 | Gradle (via wrapper) + AGP/Kotlin dependency cache | First build downloads them into `~/.gradle` | ~0.5-1 GB |
 | **Total** | | **~1-1.5 GB** |
@@ -64,7 +65,7 @@ Android Studio and the emulator are not planned.
 ## Information needed from Sebastian
 
 1. ~~Tablet connected?~~ Done over Wi-Fi.
-2. **Approval to install** the toolchain above, including one `sudo apt` command for the JDK.
+2. ~~Approval to install~~ Done; SDK license accepted 2026-11-15.
 3. **Time for the wake-up test**: about 10 minutes with the remote, ideally done with your foot.
 4. **App ID**, e.g. `xyz.pageturner.keylab`. It is permanent once installed; changing it later means a reinstall that loses app data.
 5. **Your sheet music PDFs**: mostly scanned (images) or engraved (vector, e.g. from MuseScore)? Rough page count and file size? This affects render speed and caching in M2, not M1.
@@ -78,9 +79,10 @@ Android Studio and the emulator are not planned.
 | D2 | 2026-11-13 | Native Android app in Kotlin | Web pages never receive Volume Up | Done |
 | D3 | 2026-11-13 | Short press = next page; previous page = double tap or long press | Both buttons send the same key | Thresholds to validate with foot presses |
 | D4 | 2026-11-13 | Foreground-only key handling (consume in `onKeyDown`/`onKeyUp`, ignore `repeatCount > 0`) | Simple, no accessibility permissions | Done |
-| D5 | 2026-11-13 | Terminal toolchain (JDK, cmdline-tools, Gradle), no Android Studio | Lighter; the adb loop is enough | Install pending approval |
+| D5 | 2026-11-13 | Terminal toolchain (JDK, cmdline-tools, Gradle), no Android Studio | Lighter; the adb loop is enough | Installed 2026-11-15; JDK 21 instead of 17 (both LTS; newest cmdline-tools may need newer Java) |
 | D6 | 2026-11-15 | Git repo in `page-turner/`; small commits; build outputs and `local.properties` ignored | Track code and docs history | Done; remote is a private GitHub repo (SSH) |
 | D7 | 2026-11-15 | Run the wake-up test before the toolchain install | Its result may change the design | Proposed |
+| D9 | 2026-11-15 | No `~/.bashrc` changes; the SDK path goes in `local.properties` (not committed) and tools are called by full path | No system or shell config changes | Done |
 | D8 | 2026-11-15 | Wireless debugging is the default adb connection; USB is the fallback | Few USB ports; the tablet stays free on the music stand | Trial: log drops and port changes |
 
 ## Open questions
