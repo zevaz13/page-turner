@@ -46,7 +46,7 @@ Sebastian plays piano from PDF scores on a Galaxy Tab S7 FE and turns pages with
 - **Previous** goes back exactly one view (a history stack within the session); at the start of the piece it does nothing visible except a small bump.
 - **Jump animation**: quick slide of about 180 ms; turn on/off is a constant (Sebastian may prefer instant).
 - **Hold slide speed**: about 10% of the visible height per second; constant at the top of the file.
-- **Remembered data** (per file, keyed by the document URI): last position (page + line index + offset) and hold corrections (page + line index -> top offset). Stored as a small JSON file in app storage. Persist URI read permission so files reopen without the picker.
+- **Remembered data** (per file, keyed by the document URI): last position (page + line index + offset) and hold corrections (page + line index -> top offset). Stored as a small `java.util.Properties` file per score in app storage (plain text, testable on the JVM). Persist URI read permission so files reopen without the picker.
 - **Rotation** keeps the same line at the top of the screen.
 - **Remote status**: a small, unobtrusive indicator (connected / asleep), reusing KeyLab's input-device listener, because the waking press can be lost (D12).
 - **Fullscreen (immersive)** and keep-screen-on while a score is open. Volume keys consumed as in KeyLab.
