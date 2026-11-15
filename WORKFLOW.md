@@ -118,6 +118,15 @@ adb logcat -s KeyLab                                           # app log only (-
 - Versions: AGP 9.5.1, Gradle 9.9.1 (wrapper), JDK 21, compile/target/min SDK 34. The first build took 71 s and downloaded about 700 MB into `~/.gradle`.
 - Known harmless warning: "Configuration.setVisible(boolean) ... deprecated" comes from AGP itself, not our build script.
 
+**KeyLab (M1) usage**
+- Screen: remote status bar (green = connected with sleep countdown, orange = under 1 min to sleep, red = asleep), simulated page number, last gesture and how late it fired, live event log.
+- Gestures (Volume Up only): SHORT = next, LONG (held 700 ms or more, fires while held) or DOUBLE (second press within 400 ms of the first release) = previous. A SHORT is reported 400 ms late because of the double-tap window.
+- Change thresholds without rebuilding: `adb shell am start -S -n xyz.pageturner.keylab/.MainActivity --el longMs 800 --el doubleMs 350`
+- Live CSV: `adb logcat -s KeyLab -v raw`. Rows: `kind,wall,uptime,action,key,eventTime,downTime,repeat,deviceId,device,source,deltaMs,holdMs,info`; kinds are KEY, GESTURE, DEVICE, NOTE.
+- If the remote reconnects and no key arrives within 2 s, a NOTE says the waking press was probably lost.
+- Export: tap **Export CSV**, then `adb pull /sdcard/Android/data/xyz.pageturner.keylab/files/ .`
+- `adb shell input keyevent --longpress 24` is not a real long press (its UP carries the DOWN time, hold 0), so test long presses with the remote.
+
 **Simulating the remote without Bluetooth:** `adb shell input keyevent 24` injects Volume Up (KEYCODE_VOLUME_UP = 24), so page-turn logic can be tested from the computer. The real tablet is needed for Bluetooth and wake-up behavior.
 
 **App behavior from the test results**

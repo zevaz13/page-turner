@@ -41,7 +41,7 @@ Helper (built 2026-11-12): `key-tester.html` in this folder, also hosted at http
   - One-time observation: the input device node `/dev/input/event14` did not exist after the remote had been idle ("No such file") and reappeared at the same path after pressing the button. Suggests the remote disconnects when idle and reconnects on press. Not yet confirmed with add/remove device lines or a lost-press test.
 - 2026-11-15, idle wake-up test over wireless adb (raw: `test-logs/wake-test-remote-rl7-sm-t733-2026-11-15.txt`). Foot presses, Android button. Delivery checked against Android's audio log (`dumpsys audio`, one `ADJUST_RAISE` per delivered press), which is the ground truth; getevent alone could miss an event that arrives right after the device node appears.
   - **Verified: idle timeout is 5 minutes.** The remote disconnected (`remove device`) 300.3 s after the last release.
-  - **Verified: the waking press is sometimes lost.** Trial 1 (idle for days): the waking press reconnected the remote and was delivered 0.53 s after `add device` (280 ms hold). Trial 2 (about 1.5 min after the 5-min disconnect): the press reconnected the remote but produced no key event and no volume change. The next press 12.9 s later worked. 1 of 2 waking presses lost; too few trials to give a rate.
+  - **Verified: the waking press is sometimes lost.** Trial 1 (idle for days): the waking press reconnected the remote and was delivered 0.53 s after `add device` (280 ms hold). Trial 2 (about 1.5 min after the 5-min disconnect): the press reconnected the remote but produced no key event and no volume change. The next press 12.9 s later worked. 1 of 2 waking presses lost; too few trials to give a rate. (A third, in KeyLab's first run, was also lost: 2 of 3.)
   - Presses while connected: all delivered (3 of 3 today). No duplicate events.
   - Foot-press holds today: 280, 272, 155 ms (similar to hand taps).
   - Felt latency: "really quick" when delivered.
@@ -94,6 +94,7 @@ Stretch (ties into other backlog projects):
 - Soundhouse DIY page-turning pedal guide: https://www.soundhouse.co.jp/en/contents/column/index?post=4114
 
 ## Log
+- 2026-11-15: KeyLab M1 core works on the tablet: key log, volume keys consumed (no volume change, checked in `dumpsys audio`), short/double gestures from injected keys, remote status, CSV export via `adb pull`. During the first run the remote reconnected with no key (another lost waking press, flagged live by KeyLab; `test-logs/keylab-first-run-sm-t733-2026-11-15.csv`). Running count: waking press lost 2 of 3.
 - 2026-11-15: Toolchain installed (JDK 21, cmdline-tools 23, android-34). `keylab/` hello app builds (AGP 9.5.1, Gradle 9.9.1), installs over Wi-Fi in 8 s, and logs to logcat. Next: KeyLab features (M1).
 - 2026-11-15: Idle wake-up test. Remote disconnects after exactly 5 min idle. Waking press delivered in trial 1, lost in trial 2. More trials needed.
 - 2026-11-15: Git repo and PLAN.md created. Paired and connected over wireless debugging. Tablet: SM-T733, Android 14 / SDK 34, on 5 GHz Wi-Fi. Next: idle wake-up test, then the toolchain install.
