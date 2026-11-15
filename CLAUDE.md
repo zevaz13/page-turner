@@ -1,6 +1,6 @@
 # Page-turner (Claude Code context)
 
-Read `README.md` (findings, decisions) and `WORKFLOW.md` (commands) first. Root conventions are in `../CLAUDE.md`.
+Read `README.md` (findings), `WORKFLOW.md` (commands) and `PLAN.md` (decisions, milestone checklist) first. Root conventions are in `../CLAUDE.md`. Tick milestones and add decisions in `PLAN.md` as work progresses.
 
 ## Goal
 Hands-free page turns for PDF sheet music on a Samsung Android tablet, using a foot-pressed Bluetooth shutter remote, through my own native Android PDF reader app (Kotlin).
