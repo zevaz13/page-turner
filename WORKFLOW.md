@@ -16,9 +16,26 @@ How to set things up, run the tests, and (soon) build the app. Findings and deci
 2. Settings > **Developer options** (bottom of the main list): switch it on.
 3. Turn on **USB debugging**.
 4. Plug into the computer with a data-capable cable. Tick "Always allow from this computer" and tap Allow.
-5. Optional later: **Wireless debugging** (same screen) for cable-free installs and logs.
+5. **Wireless debugging** is the default way to connect (see section 2b). USB is the fallback.
 
 Samsung's **Auto Blocker** (Settings > Security and privacy) may block USB commands. Turn it off while developing.
+
+## 2b. Wireless debugging (default, verified 2026-11-15)
+Tablet and computer must be on the same Wi-Fi network. Automatic network discovery (`adb mdns services`) found nothing on this network, so connect by address by hand.
+
+**Pair (once per computer):** Developer options > Wireless debugging > **Pair device with pairing code**. Keep the dialog open and run:
+```
+adb pair <tablet-ip>:<pairing-port> <6-digit-code>
+```
+**Connect (each session):** the address on the main Wireless debugging screen ("IP address & Port") has a different port from the pairing one.
+```
+adb connect <tablet-ip>:<port>
+adb devices            # should show <tablet-ip>:<port>  device
+```
+- The port changes when wireless debugging is toggled or the tablet reboots. Pairing is kept, so you only need a new `adb connect`.
+- With more than one device attached, add `-s <tablet-ip>:<port>` to adb commands.
+- Fallback with a fixed port: connect by USB once, run `adb tcpip 5555`, unplug, then `adb connect <tablet-ip>:5555`. This lasts until the next reboot.
+- The tablet is on 5 GHz Wi-Fi (5220 MHz), so adb traffic does not share the 2.4 GHz band with the remote's Bluetooth.
 
 ## 3. Computer setup
 - adb installed (Debian/Ubuntu/Mint: `sudo apt install adb`).

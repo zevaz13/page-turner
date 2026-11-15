@@ -15,6 +15,12 @@ Use the Bluetooth camera-shutter remote I already own as a foot-pressed page-tur
 - Native Android apps receive any key code via key-down/key-up events. A web page usually does NOT receive Volume keys (the system handles them first) but can receive Enter/arrow keys. So the key it sends affects the app choice (native vs. web).
 - Existing reader apps (e.g. MobileSheets) support Bluetooth page-turn devices and MIDI-to-action mapping, but one forum thread reports a DIY ESP32 pedal not being recognized in its pedal settings. If I write my own app this no longer matters.
 
+## Tablet (recorded 2026-11-15 via adb)
+- Samsung Galaxy Tab S7 FE, model SM-T733. Android 14 (SDK 34), One UI 6.1, arm64-v8a.
+- Display 1600x2560 (portrait), 340 dpi.
+- Connected over wireless debugging on 5 GHz Wi-Fi. Network discovery (mDNS) does not work on the home network, so connect by address by hand.
+- At connection time the remote was not listed as an input device (idle, probably disconnected).
+
 ## Test checklist (do first, ~10 minutes)
 1. Which key does it send? (key-tester app on the tablet; nRF Connect shows the HID report map).
 2. Does it send key-down and key-up separately? If yes, short vs. long press is detectable (next vs. previous from one button).
@@ -69,7 +75,7 @@ Stretch (ties into other backlog projects):
 
 ## Open questions
 - Resolved: two buttons (Android / iOS), both send Volume Up. Previous page = long press or double tap.
-- Is Android Studio / adb set up on the Linux machine?
+- Resolved 2026-11-15: adb works, over Wi-Fi. Toolchain not installed yet (see PLAN.md).
 - Which reader app is on the tablet now (needed only for comparison/fallback)?
 - Piano brand/model and MIDI connection (for the MIDI stretch goals)?
 
@@ -82,6 +88,7 @@ Stretch (ties into other backlog projects):
 - Soundhouse DIY page-turning pedal guide: https://www.soundhouse.co.jp/en/contents/column/index?post=4114
 
 ## Log
+- 2026-11-15: Git repo and PLAN.md created. Paired and connected over wireless debugging. Tablet: SM-T733, Android 14 / SDK 34, on 5 GHz Wi-Fi. Next: idle wake-up test, then the toolchain install.
 - 2026-11-13: Labeled capture confirms the two buttons (Android / iOS) are identical: both Volume Up. adb installed and tablet authorized. getevent shows separate press/release with ~200-500 ms hand holds, no kernel auto-repeat; remote seems to disconnect when idle. Next: idle/lost-press test, other buttons.
 - 2026-11-13: Remote sends Volume Up; web tester sees nothing; decided on a native Android app. Next: measure timing/latency (adb getevent, existing reader, or KeyLab app).
 - 2026-11-12: Built the key tester (`key-tester.html`, headless-browser checked on desktop; not yet run on the tablet with the real remote).

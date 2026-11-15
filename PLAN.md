@@ -7,7 +7,8 @@ Where we discuss decisions and tick off milestones. Measurements and findings st
 - [x] **M-1 Feasibility** (2026-11-13): the remote sends Volume Up with separate press and release, two identical buttons, no kernel auto-repeat. Web route ruled out.
 - [ ] **M0 Setup and measurements**
   - [x] Git repository (2026-11-15)
-  - [ ] Tablet details recorded (model, Android version, SDK level)
+  - [x] Wireless adb connected (2026-11-15)
+  - [x] Tablet details recorded (2026-11-15): SM-T733, Android 14, SDK 34
   - [ ] Toolchain plan approved
   - [ ] Toolchain installed and checked with a "hello" APK on the tablet
   - [ ] Idle wake-up test: is the first press after idle lost?
@@ -19,10 +20,11 @@ Where we discuss decisions and tick off milestones. Measurements and findings st
 
 ## First steps (M0), in order, and why
 
-1. **Connect the tablet** (`adb devices` should list it as `device`).
-   Why: every later step (tablet details, wake-up test, installs) goes through adb. On 2026-11-15 `adb devices` showed nothing, so the tablet was not connected or not authorized.
+1. **Connect the tablet**: done 2026-11-15 over wireless debugging (WORKFLOW 2b).
+   Why: every later step (tablet details, wake-up test, installs) goes through adb.
 2. **Record tablet details** (`getprop ro.product.model`, `ro.build.version.release`, `ro.build.version.sdk`).
    Why: the SDK level sets `targetSdk`/`compileSdk` and tells us which SDK platform to download. `minSdk` can simply be the tablet's own level, since this app is only for one device.
+   Result: SDK 34, so `minSdk = targetSdk = compileSdk = 34` and the SDK package is `platforms;android-34`.
 3. **Run the idle wake-up test** (WORKFLOW 4c). It needs only adb.
    Why: this is the make-or-break risk. If the waking press is lost, the gesture design changes before any code is written (for example a "wake" tap at the end of each page, or moving the custom pedal earlier). Running it before the toolchain install means a bad result costs no download time.
 4. **Toolchain plan, then install after approval.**
@@ -42,7 +44,7 @@ Where we discuss decisions and tick off milestones. Measurements and findings st
 | CPU | 8 threads | |
 | Java | not installed | |
 | Android SDK | none (`$ANDROID_HOME` unset, no `~/Android/Sdk`) | |
-| adb | installed (apt) | Tablet not listed on 2026-11-15 |
+| adb | 34.0.4 (apt) | Wireless pairing works; mDNS discovery does not |
 | git | 2.43, user configured | |
 
 ## Proposed toolchain (pending approval; sizes are estimates to confirm before downloading)
@@ -51,7 +53,7 @@ Where we discuss decisions and tick off milestones. Measurements and findings st
 |---|---|---|
 | JDK 17 headless | `sudo apt install openjdk-17-jdk-headless` | ~250 MB installed |
 | Android command-line tools | Zip from developer.android.com into `~/Android/Sdk/cmdline-tools/latest` | ~150 MB |
-| SDK platform `android-<tablet SDK>` + `build-tools` | `sdkmanager` | ~150-250 MB |
+| SDK `platforms;android-34` + `build-tools;34.x` | `sdkmanager` | ~150-250 MB |
 | platform-tools | Skip; reuse the apt adb unless versions clash | 0 |
 | Gradle (via wrapper) + AGP/Kotlin dependency cache | First build downloads them into `~/.gradle` | ~0.5-1 GB |
 | **Total** | | **~1-1.5 GB** |
@@ -60,7 +62,7 @@ Android Studio and the emulator are not planned.
 
 ## Information needed from Sebastian
 
-1. **Tablet connected?** Plug it in and unlock it, then check that `adb devices` shows `device`. Samsung Auto Blocker may need to be off.
+1. ~~Tablet connected?~~ Done over Wi-Fi.
 2. **Approval to install** the toolchain above, including one `sudo apt` command for the JDK.
 3. **Time for the wake-up test**: about 10 minutes with the remote, ideally done with your foot.
 4. **App ID**, e.g. `xyz.pageturner.keylab`. It is permanent once installed; changing it later means a reinstall that loses app data.
@@ -78,6 +80,7 @@ Android Studio and the emulator are not planned.
 | D5 | 2026-11-13 | Terminal toolchain (JDK, cmdline-tools, Gradle), no Android Studio | Lighter; the adb loop is enough | Install pending approval |
 | D6 | 2026-11-15 | Git repo in `page-turner/`; small commits; build outputs and `local.properties` ignored | Track code and docs history | Done |
 | D7 | 2026-11-15 | Run the wake-up test before the toolchain install | Its result may change the design | Proposed |
+| D8 | 2026-11-15 | Wireless debugging is the default adb connection; USB is the fallback | Few USB ports; the tablet stays free on the music stand | Trial: log drops and port changes |
 
 ## Open questions
 
@@ -85,3 +88,4 @@ Android Studio and the emulator are not planned.
 - Double tap or long press for "previous"? A double tap delays every "next" by the double-tap window (~400 ms) unless "next" fires on the first press and a second press reverses it. Decide after KeyLab shows real foot timings.
 - Package and app name.
 - Git remote, if any.
+- How stable is wireless adb? (Drops, port changes after sleep.)
