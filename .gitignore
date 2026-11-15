@@ -24,3 +24,9 @@ captures/
 # Ad-hoc captures (save keepers in test-logs/ with device+date names)
 press.log
 *.tmp
+
+# Brainstorm mockups
+.superpowers/
+
+# Example scores: large binaries, kept local. Tests use small rendered fixtures instead.
+pdfExamples/

@@ -16,7 +16,7 @@ Where we discuss decisions and tick off milestones. Measurements and findings st
   - [x] ~~Waking-press loss rate: 5-10 more trials~~ Dropped 2026-11-15 (D12)
   - [x] Foot-press hold times measured (2026-11-15): taps 26-322 ms, holds 476 ms and up
 - [x] **M1 KeyLab** (2026-11-15): key logger, gesture classifier, remote status, CSV export, verified with foot presses. Wake-up latency mode deferred (D13).
-- [ ] **M2 PDF viewer**: `PdfRenderer`, document picker, fit-to-width, remote turns, last page remembered per file.
+- [ ] **M2 PDF viewer**: line-by-line stepping. Design approved 2026-11-15: `docs/superpowers/specs/2026-11-15-pdf-viewer-design.md`. Next: implementation plan.
 - [ ] **M3 Polish**: half-page turns, setlists, night mode.
 - [ ] **Later**: piano MIDI (soft pedal turns pages, practice log); custom BLE pedal only if the remote proves unreliable.
 
@@ -88,6 +88,8 @@ Android Studio and the emulator are not planned.
 | D12 | 2026-11-15 | No further waking-press trials. Mitigation: make sure the remote is awake (a tap before playing, or after a pause of more than 5 min) | Worst case is known and cheap to work around; more trials would not change the design | Decided by Sebastian |
 | D13 | 2026-11-15 | KeyLab shows remote connection status and a countdown to the 5-min sleep instead of a full wake-up latency mode (deferred) | Supports D12 directly ("is it awake?"); the latency mode measured the question D12 set aside | Proposed; can be added back |
 | D14 | 2026-11-15 | Long press 400 ms, double-tap window 250 ms | Splits foot taps (at most 322 ms) from deliberate holds (at least 476 ms); all gestures correct in round 2 | Verified with foot presses |
+| D15 | 2026-11-15 | M2 gestures: tap = next line(s), double tap = previous view, hold = slide back (fix an overshoot, remembered per file) | Sebastian's design; double tap kept | Approved; tune on the tablet |
+| D16 | 2026-11-15 | Zoom to content width (margins trimmed) and step whole lines of music in both orientations; lines found from staff lines | Readable size; spike found 23/23 lines on 4 example pages | Approved; detection to be made adaptive |
 | D8 | 2026-11-15 | Wireless debugging is the default adb connection; USB is the fallback | Few USB ports; the tablet stays free on the music stand | Trial: log drops and port changes |
 
 ## Open questions
