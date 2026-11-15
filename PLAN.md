@@ -85,7 +85,7 @@ Android Studio and the emulator are not planned.
 
 ## Open questions
 
-- Waking press: lost in 1 of 2 trials (2026-11-15). What is the rate, and does it depend on sleep length or hold time? Design options if it is frequent: (a) a deliberate wake tap after a pause of more than 5 min, with the app showing whether the remote is connected; (b) the app ignores nothing and the player re-presses when the page does not turn; (c) a custom pedal (upgrade path). The app can show connection status, because Android reports input devices being added and removed (`InputManager.InputDeviceListener`).
+- Waking press: lost in 1 of 2 trials (2026-11-15). What is the rate, and does it depend on sleep length or hold time? Design options if it is frequent: (a) a deliberate wake tap after a pause of more than 5 min, with the app showing whether the remote is connected; (b) accept it and press again when the page does not turn; (c) a custom pedal (upgrade path). The app can show connection status, because Android reports input devices being added and removed (`InputManager.InputDeviceListener`).
 - Double tap or long press for "previous"? A double tap delays every "next" by the double-tap window (~400 ms) unless "next" fires on the first press and a second press reverses it. Decide after KeyLab shows real foot timings.
 - Package and app name.
 - How stable is wireless adb? (Drops, port changes after sleep.)
