@@ -45,7 +45,14 @@ Helper (built 2026-11-12): `key-tester.html` in this folder, also hosted at http
   - Presses while connected: all delivered (3 of 3 today). No duplicate events.
   - Foot-press holds today: 280, 272, 155 ms (similar to hand taps).
   - Felt latency: "really quick" when delivered.
-- Still to measure: the waking-press loss rate (5-10 more trials), whether it depends on sleep length or hold time, and more foot-press hold times. Earlier note, superseded by the test above: the idle wake-up behavior (is the press that wakes the remote lost?). Options: `adb shell getevent -lt | grep -E "add device|remove device|name:|KEY_"` across a 2-3 minute idle gap, an existing reader app, or the native KeyLab app.
+- 2026-11-15, foot gestures in KeyLab (raw: `test-logs/keylab-foot-gestures-sm-t733-2026-11-15.csv`, `test-logs/keylab-foot-gestures-long400-double250-sm-t733-2026-11-15.csv`).
+  - **Verified: foot taps are short**: 26-322 ms, mostly 60-150 ms (shorter than hand taps). Deliberate foot holds: 476 ms and up.
+  - With long press at 700 ms, holds of 476 and 629 ms counted as short taps, so "previous" turned the page forward. Confusing.
+  - Double taps: the second press starts 28-91 ms after the first release.
+  - Possible switch bounce: a 121 ms "press" 31 ms after releasing a long press, and a few 26-35 ms holds with 28-41 ms gaps. Not seen in the second round.
+  - **Verified: long press 400 ms + double tap 250 ms** classified every gesture correctly in the second round (5 short, 5 long, 1 double; taps 82-238 ms, holds 515-1772 ms). Sebastian: "This worked amazing." These are now the defaults.
+  - With a 250 ms double-tap window, "next" fires about 330-490 ms after the press goes down.
+- Still to measure (deprioritized, D12): the waking-press loss rate (5-10 more trials), whether it depends on sleep length or hold time, and more foot-press hold times. Earlier note, superseded by the test above: the idle wake-up behavior (is the press that wakes the remote lost?). Options: `adb shell getevent -lt | grep -E "add device|remove device|name:|KEY_"` across a 2-3 minute idle gap, an existing reader app, or the native KeyLab app.
 
 ## Risks
 - **Confirmed 2026-11-15: the first press after more than 5 min idle can be lost** (1 of 2 trials). Needs a rate and a design answer (see PLAN.md).
@@ -94,6 +101,7 @@ Stretch (ties into other backlog projects):
 - Soundhouse DIY page-turning pedal guide: https://www.soundhouse.co.jp/en/contents/column/index?post=4114
 
 ## Log
+- 2026-11-15: Foot gesture tests. 700 ms long press was too long for foot holds; 400 ms long press and 250 ms double tap worked for every gesture. Defaults updated.
 - 2026-11-15: KeyLab M1 core works on the tablet: key log, volume keys consumed (no volume change, checked in `dumpsys audio`), short/double gestures from injected keys, remote status, CSV export via `adb pull`. During the first run the remote reconnected with no key (another lost waking press, flagged live by KeyLab; `test-logs/keylab-first-run-sm-t733-2026-11-15.csv`). Running count: waking press lost 2 of 3.
 - 2026-11-15: Toolchain installed (JDK 21, cmdline-tools 23, android-34). `keylab/` hello app builds (AGP 9.5.1, Gradle 9.9.1), installs over Wi-Fi in 8 s, and logs to logcat. Next: KeyLab features (M1).
 - 2026-11-15: Idle wake-up test. Remote disconnects after exactly 5 min idle. Waking press delivered in trial 1, lost in trial 2. More trials needed.

@@ -14,8 +14,8 @@ Where we discuss decisions and tick off milestones. Measurements and findings st
   - [x] Gradle wrapper and "hello" APK installed on the tablet (2026-11-15): AGP 9.5.1, Gradle 9.9.1, build-tools 36.0.0 (fetched by AGP). First build 71 s, install over Wi-Fi 8 s.
   - [x] Idle wake-up test, first pass (2026-11-15): 5-min idle timeout; waking press lost in 1 of 2 trials
   - [x] ~~Waking-press loss rate: 5-10 more trials~~ Dropped 2026-11-15 (D12)
-  - [ ] Foot-press hold times measured
-- [ ] **M1 KeyLab**: key logger, gesture classifier, wake-up latency mode, CSV export (spec in `CLAUDE.md`).
+  - [x] Foot-press hold times measured (2026-11-15): taps 26-322 ms, holds 476 ms and up
+- [x] **M1 KeyLab** (2026-11-15): key logger, gesture classifier, remote status, CSV export, verified with foot presses. Wake-up latency mode deferred (D13).
 - [ ] **M2 PDF viewer**: `PdfRenderer`, document picker, fit-to-width, remote turns, last page remembered per file.
 - [ ] **M3 Polish**: half-page turns, setlists, night mode.
 - [ ] **Later**: piano MIDI (soft pedal turns pages, practice log); custom BLE pedal only if the remote proves unreliable.
@@ -87,10 +87,12 @@ Android Studio and the emulator are not planned.
 | D11 | 2026-11-15 | App ID `xyz.pageturner.keylab`, `minSdk = targetSdk = compileSdk = 34` | One device, Android 14 | Done |
 | D12 | 2026-11-15 | No further waking-press trials. Mitigation: make sure the remote is awake (a tap before playing, or after a pause of more than 5 min) | Worst case is known and cheap to work around; more trials would not change the design | Decided by Sebastian |
 | D13 | 2026-11-15 | KeyLab shows remote connection status and a countdown to the 5-min sleep instead of a full wake-up latency mode (deferred) | Supports D12 directly ("is it awake?"); the latency mode measured the question D12 set aside | Proposed; can be added back |
+| D14 | 2026-11-15 | Long press 400 ms, double-tap window 250 ms | Splits foot taps (at most 322 ms) from deliberate holds (at least 476 ms); all gestures correct in round 2 | Verified with foot presses |
 | D8 | 2026-11-15 | Wireless debugging is the default adb connection; USB is the fallback | Few USB ports; the tablet stays free on the music stand | Trial: log drops and port changes |
 
 ## Open questions
 
 - Waking press: lost in 1 of 2 trials (2026-11-15). What is the rate, and does it depend on sleep length or hold time? Design options if it is frequent: (a) a deliberate wake tap after a pause of more than 5 min, with the app showing whether the remote is connected; (b) accept it and press again when the page does not turn; (c) a custom pedal (upgrade path). The app can show connection status, because Android reports input devices being added and removed (`InputManager.InputDeviceListener`).
-- Double tap or long press for "previous"? A double tap delays every "next" by the double-tap window (~400 ms) unless "next" fires on the first press and a second press reverses it. Decide after KeyLab shows real foot timings.
+- For M2: keep both gestures for "previous", or drop double tap so "next" fires on release (about 100 ms instead of about 400 ms)? Both worked in KeyLab.
+- For M2: add a bounce filter (ignore a press starting less than about 40 ms after a release)? Bounce seen once in round 1, not in round 2. Real double-tap gaps were 53-91 ms (one of 28 ms may have been bounce).
 - How stable is wireless adb? (Drops, port changes after sleep.)

@@ -23,8 +23,8 @@ import java.time.format.DateTimeFormatter
 
 // Tunables. Override at launch without rebuilding, e.g.:
 //   adb shell am start -n xyz.pageturner.keylab/.MainActivity --el longMs 800 --el doubleMs 350
-private const val LONG_PRESS_MS = 700L
-private const val DOUBLE_TAP_MS = 400L
+private const val LONG_PRESS_MS = 400L   // foot taps 26-322 ms, deliberate holds >= 476 ms (2026-11-15)
+private const val DOUBLE_TAP_MS = 250L   // foot double taps: second press 28-91 ms after release
 
 private const val REMOTE_NAME = "Bluetooth remote RL7"
 private const val REMOTE_SLEEP_MS = 300_000L      // measured 2026-11-15: disconnects 300 s after last release
