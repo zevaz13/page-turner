@@ -13,7 +13,7 @@ Where we discuss decisions and tick off milestones. Measurements and findings st
   - [x] JDK 21 + Android cmdline-tools 23.0 + `platforms;android-34` installed (2026-11-15, SDK dir 313 MB)
   - [x] Gradle wrapper and "hello" APK installed on the tablet (2026-11-15): AGP 9.5.1, Gradle 9.9.1, build-tools 36.0.0 (fetched by AGP). First build 71 s, install over Wi-Fi 8 s.
   - [x] Idle wake-up test, first pass (2026-11-15): 5-min idle timeout; waking press lost in 1 of 2 trials
-  - [ ] Waking-press loss rate: 5-10 more trials
+  - [x] ~~Waking-press loss rate: 5-10 more trials~~ Dropped 2026-11-15 (D12)
   - [ ] Foot-press hold times measured
 - [ ] **M1 KeyLab**: key logger, gesture classifier, wake-up latency mode, CSV export (spec in `CLAUDE.md`).
 - [ ] **M2 PDF viewer**: `PdfRenderer`, document picker, fit-to-width, remote turns, last page remembered per file.
@@ -85,6 +85,8 @@ Android Studio and the emulator are not planned.
 | D9 | 2026-11-15 | No `~/.bashrc` changes; the SDK path goes in `local.properties` (not committed) and tools are called by full path | No system or shell config changes | Done |
 | D10 | 2026-11-15 | AGP 9.5.1 / Gradle 9.9.1 (current), single-module project, no AndroidX, Kotlin compiled by AGP's built-in support | Newest stable; fewest moving parts | Done |
 | D11 | 2026-11-15 | App ID `xyz.pageturner.keylab`, `minSdk = targetSdk = compileSdk = 34` | One device, Android 14 | Done |
+| D12 | 2026-11-15 | No further waking-press trials. Mitigation: make sure the remote is awake (a tap before playing, or after a pause of more than 5 min) | Worst case is known and cheap to work around; more trials would not change the design | Decided by Sebastian |
+| D13 | 2026-11-15 | KeyLab shows remote connection status and a countdown to the 5-min sleep instead of a full wake-up latency mode (deferred) | Supports D12 directly ("is it awake?"); the latency mode measured the question D12 set aside | Proposed; can be added back |
 | D8 | 2026-11-15 | Wireless debugging is the default adb connection; USB is the fallback | Few USB ports; the tablet stays free on the music stand | Trial: log drops and port changes |
 
 ## Open questions
