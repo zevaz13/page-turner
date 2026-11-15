@@ -106,11 +106,17 @@ awk '/KEY_VOLUMEUP +DOWN/{t=$2+0} /KEY_VOLUMEUP +UP/{printf "hold %.0f ms\n",($2
 - Lighter route: adb plus Android command-line tools, a JDK, Gradle and one SDK platform/build-tools package, driven from the terminal. No IDE, no emulator.
 - Decide after `free -h` and `df -h ~` on the computer.
 
-**Loop (to be confirmed once the project exists)**
-1. Edit the code.
-2. Build and install, for example `./gradlew installDebug`.
-3. `adb logcat` filtered to the app's tag.
-4. Press the remote, read the log, iterate.
+**Loop (verified 2026-11-15, over wireless adb)**
+```
+cd ~/HobbyProjects/page-turner/keylab
+ANDROID_SERIAL=<tablet-ip>:<port> ./gradlew installDebug      # build + install (~8 s once warm)
+adb shell am start -n xyz.pageturner.keylab/.MainActivity      # launch
+adb logcat -s KeyLab                                           # app log only (-c first to clear)
+```
+- `ANDROID_SERIAL` is only needed when more than one device is attached.
+- `local.properties` (not committed) holds `sdk.dir=/home/<user>/Android/Sdk`. Create it on a fresh checkout.
+- Versions: AGP 9.5.1, Gradle 9.9.1 (wrapper), JDK 21, compile/target/min SDK 34. The first build took 71 s and downloaded about 700 MB into `~/.gradle`.
+- Known harmless warning: "Configuration.setVisible(boolean) ... deprecated" comes from AGP itself, not our build script.
 
 **Simulating the remote without Bluetooth:** `adb shell input keyevent 24` injects Volume Up (KEYCODE_VOLUME_UP = 24), so page-turn logic can be tested from the computer. The real tablet is needed for Bluetooth and wake-up behavior.
 

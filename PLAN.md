@@ -11,7 +11,7 @@ Where we discuss decisions and tick off milestones. Measurements and findings st
   - [x] Tablet details recorded (2026-11-15): SM-T733, Android 14, SDK 34
   - [x] Toolchain plan approved (2026-11-15)
   - [x] JDK 21 + Android cmdline-tools 23.0 + `platforms;android-34` installed (2026-11-15, SDK dir 313 MB)
-  - [ ] Gradle wrapper and "hello" APK installed on the tablet
+  - [x] Gradle wrapper and "hello" APK installed on the tablet (2026-11-15): AGP 9.5.1, Gradle 9.9.1, build-tools 36.0.0 (fetched by AGP). First build 71 s, install over Wi-Fi 8 s.
   - [x] Idle wake-up test, first pass (2026-11-15): 5-min idle timeout; waking press lost in 1 of 2 trials
   - [ ] Waking-press loss rate: 5-10 more trials
   - [ ] Foot-press hold times measured
@@ -49,7 +49,7 @@ Where we discuss decisions and tick off milestones. Measurements and findings st
 | adb | 34.0.4 (apt) | Wireless pairing works; mDNS discovery does not |
 | git | 2.43, user configured | |
 
-## Toolchain (installed 2026-11-15 except Gradle; Gradle sizes are estimates)
+## Toolchain (installed 2026-11-15)
 
 | Part | How | Approx. size |
 |---|---|---|
@@ -57,8 +57,8 @@ Where we discuss decisions and tick off milestones. Measurements and findings st
 | Android command-line tools 23.0 | Zip from dl.google.com, SHA-1 checked, into `~/Android/Sdk/cmdline-tools/latest` | 181 MB |
 | SDK `platforms;android-34` | `sdkmanager` | 63 MB; build-tools left to the Android Gradle Plugin to fetch |
 | platform-tools | Skip; reuse the apt adb unless versions clash | 0 |
-| Gradle (via wrapper) + AGP/Kotlin dependency cache | First build downloads them into `~/.gradle` | ~0.5-1 GB |
-| **Total** | | **~1-1.5 GB** |
+| Gradle 9.9.1 (wrapper) + AGP 9.5.1 + Kotlin dependency cache | First build downloads them into `~/.gradle` | 692 MB in `~/.gradle`; build-tools 36.0.0 added to the SDK (SDK now 481 MB) |
+| **Total** | | **~1.5 GB on disk** |
 
 Android Studio and the emulator are not planned.
 
@@ -67,7 +67,7 @@ Android Studio and the emulator are not planned.
 1. ~~Tablet connected?~~ Done over Wi-Fi.
 2. ~~Approval to install~~ Done; SDK license accepted 2026-11-15.
 3. **Time for the wake-up test**: about 10 minutes with the remote, ideally done with your foot.
-4. **App ID**, e.g. `xyz.pageturner.keylab`. It is permanent once installed; changing it later means a reinstall that loses app data.
+4. ~~App ID~~: `xyz.pageturner.keylab` (2026-11-15).
 5. **Your sheet music PDFs**: mostly scanned (images) or engraved (vector, e.g. from MuseScore)? Rough page count and file size? This affects render speed and caching in M2, not M1.
 6. ~~Git remote~~: private GitHub repo, SSH remote `origin` (2026-11-15).
 
@@ -83,11 +83,12 @@ Android Studio and the emulator are not planned.
 | D6 | 2026-11-15 | Git repo in `page-turner/`; small commits; build outputs and `local.properties` ignored | Track code and docs history | Done; remote is a private GitHub repo (SSH) |
 | D7 | 2026-11-15 | Run the wake-up test before the toolchain install | Its result may change the design | Proposed |
 | D9 | 2026-11-15 | No `~/.bashrc` changes; the SDK path goes in `local.properties` (not committed) and tools are called by full path | No system or shell config changes | Done |
+| D10 | 2026-11-15 | AGP 9.5.1 / Gradle 9.9.1 (current), single-module project, no AndroidX, Kotlin compiled by AGP's built-in support | Newest stable; fewest moving parts | Done |
+| D11 | 2026-11-15 | App ID `xyz.pageturner.keylab`, `minSdk = targetSdk = compileSdk = 34` | One device, Android 14 | Done |
 | D8 | 2026-11-15 | Wireless debugging is the default adb connection; USB is the fallback | Few USB ports; the tablet stays free on the music stand | Trial: log drops and port changes |
 
 ## Open questions
 
 - Waking press: lost in 1 of 2 trials (2026-11-15). What is the rate, and does it depend on sleep length or hold time? Design options if it is frequent: (a) a deliberate wake tap after a pause of more than 5 min, with the app showing whether the remote is connected; (b) accept it and press again when the page does not turn; (c) a custom pedal (upgrade path). The app can show connection status, because Android reports input devices being added and removed (`InputManager.InputDeviceListener`).
 - Double tap or long press for "previous"? A double tap delays every "next" by the double-tap window (~400 ms) unless "next" fires on the first press and a second press reverses it. Decide after KeyLab shows real foot timings.
-- Package and app name.
 - How stable is wireless adb? (Drops, port changes after sleep.)

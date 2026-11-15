@@ -94,6 +94,7 @@ Stretch (ties into other backlog projects):
 - Soundhouse DIY page-turning pedal guide: https://www.soundhouse.co.jp/en/contents/column/index?post=4114
 
 ## Log
+- 2026-11-15: Toolchain installed (JDK 21, cmdline-tools 23, android-34). `keylab/` hello app builds (AGP 9.5.1, Gradle 9.9.1), installs over Wi-Fi in 8 s, and logs to logcat. Next: KeyLab features (M1).
 - 2026-11-15: Idle wake-up test. Remote disconnects after exactly 5 min idle. Waking press delivered in trial 1, lost in trial 2. More trials needed.
 - 2026-11-15: Git repo and PLAN.md created. Paired and connected over wireless debugging. Tablet: SM-T733, Android 14 / SDK 34, on 5 GHz Wi-Fi. Next: idle wake-up test, then the toolchain install.
 - 2026-11-13: Labeled capture confirms the two buttons (Android / iOS) are identical: both Volume Up. adb installed and tablet authorized. getevent shows separate press/release with ~200-500 ms hand holds, no kernel auto-repeat; remote seems to disconnect when idle. Next: idle/lost-press test, other buttons.
