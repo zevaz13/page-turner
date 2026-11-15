@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Remote Key Tester</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* Layout idea: bench instrument. Live readout and verdict side by side, then wake-up latency test, event log, export. */
+:root{
+  --bg:#f3f2ee; --panel:#ffffff; --ink:#1a1f24; --muted:#5b646d; --line:#d8d5cb; --soft:#ebeae4;
+  --accent:#0b6b6b; --accent-ink:#ffffff; --good:#1c7a38; --warn:#a8470a; --bad:#b3261e;
+  --font-body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --font-mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#11161a; --panel:#1a2127; --ink:#e7eaed; --muted:#9aa5af; --line:#2c363e; --soft:#222b32;
+    --accent:#4fc1c1; --accent-ink:#06201f; --good:#59c77a; --warn:#f0a15f; --bad:#ff8a80;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#11161a; --panel:#1a2127; --ink:#e7eaed; --muted:#9aa5af; --line:#2c363e; --soft:#222b32;
+  --accent:#4fc1c1; --accent-ink:#06201f; --good:#59c77a; --warn:#f0a15f; --bad:#ff8a80;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--font-body);font-size:16px;line-height:1.45}
+main{max-width:1000px;margin:0 auto;padding:24px 16px 56px;display:flex;flex-direction:column;gap:16px}
+h1{font-size:1.7rem;margin:0;font-weight:600;text-wrap:balance}
+h2{font-size:1rem;margin:0 0 10px;font-weight:600;letter-spacing:.01em}
+p{margin:0}
+.lead{color:var(--muted);max-width:65ch;margin-top:6px}
+.steps{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;padding:0;list-style:none;counter-reset:s}
+.steps li{counter-increment:s;background:var(--soft);border-radius:999px;padding:4px 12px;font-size:.88rem;color:var(--muted)}
+.steps li::before{content:counter(s) ". ";font-family:var(--font-mono);color:var(--ink)}
+.grid{display:grid;grid-template-columns:1.15fr 1fr;gap:16px}
+@media (max-width:760px){.grid{grid-template-columns:1fr}}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px;min-width:0}
+.mono{font-family:var(--font-mono)}
+/* capture panel */
+#capture{display:block;width:100%;text-align:left;cursor:pointer;border:2px dashed var(--line);outline:none;background:var(--panel);color:var(--ink);font:inherit}
+#capture:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+#capture.live{border-style:solid;border-color:var(--accent)}
+.pill{display:inline-block;font-size:.8rem;font-weight:500;padding:3px 10px;border-radius:999px;background:var(--soft);color:var(--muted)}
+.pill.on{background:var(--accent);color:var(--accent-ink)}
+#keyName{font-family:var(--font-mono);font-size:clamp(2.2rem,8vw,3.6rem);font-weight:500;line-height:1.1;margin:14px 0 4px;overflow-wrap:anywhere}
+#keySub{color:var(--muted);min-height:1.4em}
+dl.facts{display:grid;grid-template-columns:auto 1fr;gap:4px 16px;margin:14px 0 0;font-size:.92rem}
+dl.facts dt{color:var(--muted)}
+dl.facts dd{margin:0;font-family:var(--font-mono);overflow-wrap:anywhere}
+/* tiles */
+.tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px}
+.tile{background:var(--soft);border-radius:8px;padding:8px 10px}
+.tile b{display:block;font-family:var(--font-mono);font-size:1.3rem;font-weight:500;font-variant-numeric:tabular-nums}
+.tile span{font-size:.78rem;color:var(--muted)}
+/* verdict */
+#verdict{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+#verdict li{display:flex;gap:10px;align-items:flex-start;font-size:.95rem}
+#verdict .tag{flex:none;font-family:var(--font-mono);font-size:.72rem;font-weight:500;border-radius:4px;padding:2px 6px;margin-top:2px;background:var(--soft);color:var(--muted);min-width:3.4em;text-align:center}
+#verdict .good .tag{background:var(--good);color:var(--panel)}
+#verdict .warn .tag{background:var(--warn);color:var(--panel)}
+/* buttons */
+button.btn{font:inherit;font-weight:500;min-height:44px;padding:8px 16px;border-radius:8px;border:1px solid var(--line);background:var(--panel);color:var(--ink);cursor:pointer}
+button.btn:hover{border-color:var(--accent)}
+button.btn:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+button.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+/* latency */
+#stage{border-radius:10px;background:var(--soft);padding:22px 16px;text-align:center;margin:12px 0}
+#stage .big{font-family:var(--font-mono);font-size:clamp(1.6rem,6vw,2.6rem);font-weight:500}
+#stage.cue{background:var(--accent);color:var(--accent-ink)}
+.small{font-size:.88rem;color:var(--muted)}
+label.chk{display:inline-flex;gap:8px;align-items:center;font-size:.9rem;color:var(--muted);min-height:44px}
+table{width:100%;border-collapse:collapse;font-family:var(--font-mono);font-size:.84rem;font-variant-numeric:tabular-nums}
+th,td{text-align:left;padding:5px 8px;border-bottom:1px solid var(--line);white-space:nowrap}
+th{position:sticky;top:0;background:var(--panel);color:var(--muted);font-weight:500}
+.scroll{overflow:auto;max-height:340px;border:1px solid var(--line);border-radius:8px}
+.scroll.short{max-height:none}
+td.lost{color:var(--bad)}
+textarea{width:100%;min-height:150px;font-family:var(--font-mono);font-size:.82rem;background:var(--soft);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:10px;resize:vertical}
+@media (prefers-reduced-motion:no-preference){#capture,#stage{transition:background .12s,border-color .12s}}
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>Remote Key Tester</h1>
+    <p class="lead">Press your Bluetooth shutter remote and see exactly what the tablet receives: which key, whether press and release arrive separately, and how fast it wakes after sitting idle.</p>
+    <ol class="steps">
+      <li>Pair the remote with this tablet</li>
+      <li>Tap the panel below once</li>
+      <li>Press the remote with your foot or hand</li>
+    </ol>
+  </header>
+
+  <div class="grid">
+    <section class="card" aria-labelledby="h-live">
+      <h2 id="h-live">Live readout</h2>
+      <div id="capture" class="card" role="button" tabindex="0" aria-label="Tap to start listening for the remote">
+        <span id="focusPill" class="pill">Tap here to start listening</span>
+        <div id="keyName">&mdash;</div>
+        <div id="keySub">Waiting for the first press</div>
+        <dl class="facts">
+          <dt>Event</dt><dd id="f-type">&mdash;</dd>
+          <dt>key</dt><dd id="f-key">&mdash;</dd>
+          <dt>code</dt><dd id="f-code">&mdash;</dd>
+          <dt>keyCode</dt><dd id="f-keyCode">&mdash;</dd>
+          <dt>Repeat flag</dt><dd id="f-repeat">&mdash;</dd>
+          <dt>Since previous event</dt><dd id="f-dt">&mdash;</dd>
+        </dl>
+      </div>
+    </section>
+
+    <section class="card" aria-labelledby="h-verdict">
+      <h2 id="h-verdict">What this means</h2>
+      <div class="tiles">
+        <div class="tile"><b id="t-press">0</b><span>presses</span></div>
+        <div class="tile"><b id="t-rel">0</b><span>releases</span></div>
+        <div class="tile"><b id="t-hold">&mdash;</b><span>median hold</span></div>
+        <div class="tile"><b id="t-keys">0</b><span>distinct keys</span></div>
+      </div>
+      <ul id="verdict"></ul>
+    </section>
+  </div>
+
+  <section class="card" aria-labelledby="h-lat">
+    <h2 id="h-lat">Wake-up latency test</h2>
+    <p class="small">Many remotes sleep to save the battery, and the first press after a pause can be slow or lost. Choose an idle time, keep your hands off the remote, and press it as soon as the screen turns teal. Run each length a few times: differences under about 100 ms are just human reaction noise. The 5 s run is your baseline.</p>
+    <div class="row" style="margin-top:12px" role="group" aria-label="Idle length">
+      <button class="btn" type="button" data-sec="5">5 s idle</button>
+      <button class="btn" type="button" data-sec="30">30 s idle</button>
+      <button class="btn" type="button" data-sec="120">2 min idle</button>
+      <button class="btn" type="button" data-sec="300">5 min idle</button>
+      <button class="btn" type="button" id="cancelTest">Cancel</button>
+      <label class="chk"><input type="checkbox" id="acceptTaps"> Count screen taps too</label>
+    </div>
+    <div id="stage" aria-live="polite"><div class="big">Pick an idle length</div></div>
+    <div class="scroll short"><table>
+      <thead><tr><th>#</th><th>Idle</th><th>Response</th><th>vs 5 s baseline</th><th>Early presses</th></tr></thead>
+      <tbody id="latBody"><tr><td colspan="5" class="small" style="white-space:normal">No runs yet.</td></tr></tbody>
+    </table></div>
+    <div class="row" style="margin-top:10px"><button class="btn" type="button" id="clearLat">Clear latency results</button></div>
+  </section>
+
+  <section class="card" aria-labelledby="h-log">
+    <h2 id="h-log">Event log</h2>
+    <p class="small" style="margin-bottom:10px">Every key, tap, wheel and context-menu event the page receives, newest first. Taps on this page's own buttons are not logged.</p>
+    <div class="scroll"><table>
+      <thead><tr><th>#</th><th>t (s)</th><th>&Delta; (ms)</th><th>event</th><th>key</th><th>code</th><th>keyCode</th><th>note</th></tr></thead>
+      <tbody id="logBody"><tr><td colspan="8" class="small" style="white-space:normal">Nothing yet. Tap the panel, then press the remote.</td></tr></tbody>
+    </table></div>
+    <div class="row" style="margin-top:10px"><button class="btn" type="button" id="clearLog">Clear log</button></div>
+  </section>
+
+  <section class="card" aria-labelledby="h-exp">
+    <h2 id="h-exp">Copy results</h2>
+    <p class="small" style="margin-bottom:10px">Paste this into the chat so the results can go into the page-turner notes.</p>
+    <textarea id="summary" readonly aria-label="Results summary"></textarea>
+    <div class="row" style="margin-top:10px">
+      <button class="btn primary" type="button" id="copyBtn">Copy summary</button>
+      <span id="copyMsg" class="small" role="status"></span>
+    </div>
+  </section>
+</main>
+
+<script>
+(function(){
+  'use strict';
+  var $ = function(id){ return document.getElementById(id); };
+  var MAXLOG = 300;
+  var S = null;
+  function fresh(){
+    return { events:[], downAt:{}, holds:[], presses:0, releases:0, repeats:0, taps:0, keys:{}, t0:null, lastT:null };
+  }
+  S = fresh();
+  var results = [];   // latency results: {sec, ms|null, early}
+  var test = null;    // running test
+  var audioCtx = null;
+
+  function median(a){
+    if(!a.length) return null;
+    var b = a.slice().sort(function(x,y){return x-y;});
+    var m = Math.floor(b.length/2);
+    return b.length%2 ? b[m] : (b[m-1]+b[m])/2;
+  }
+  function ms(v){ return v===null||v===undefined ? '—' : (Math.round(v)+' ms'); }
+  function keyLabel(e){
+    if(e.key===' ') return 'Space';
+    if(!e.key || e.key==='Unidentified') return e.code || ('keyCode '+e.keyCode);
+    return e.key;
+  }
+  function idOf(e){ return (e.key||'')+'|'+(e.code||'')+'|'+(e.keyCode||0); }
+
+  /* ---------- event capture ---------- */
+  function record(type, info){
+    var now = info.ts;
+    if(S.t0===null) S.t0 = now;
+    var dt = S.lastT===null ? null : now - S.lastT;
+    S.lastT = now;
+    var rec = { n:S.events.length ? S.events[0].n+1 : 1, t:(now-S.t0)/1000, dt:dt, type:type,
+                key:info.key||'', code:info.code||'', keyCode:info.keyCode===undefined?'':info.keyCode, note:info.note||'' };
+    S.events.unshift(rec);
+    if(S.events.length>MAXLOG) S.events.pop();
+    return rec;
+  }
+
+  function onKey(e){
+    var t = e.target;
+    if(t && (t.tagName==='TEXTAREA' || t.tagName==='INPUT')) return;
+    if(!(e.ctrlKey||e.metaKey||e.altKey)){ e.preventDefault(); }   // keep Enter/Space from clicking buttons or scrolling
+    var ts = e.timeStamp || performance.now();
+    var id = idOf(e);
+    var note = '';
+    if(e.type==='keydown'){
+      if(e.repeat){ S.repeats++; note = 'auto-repeat'; }
+      else {
+        S.presses++; S.downAt[id] = ts;
+        S.keys[id] = (S.keys[id]||0) + 1;
+      }
+    } else {
+      S.releases++;
+      if(S.downAt[id]!==undefined){
+        var hold = ts - S.downAt[id];
+        S.holds.push(hold); note = 'hold '+Math.round(hold)+' ms';
+        delete S.downAt[id];
+      } else { note = 'release without press'; }
+    }
+    var rec = record(e.type, { ts:ts, key:keyLabel(e), code:e.code, keyCode:e.keyCode, note:note });
+    showLast(rec, e);
+    if(e.type==='keydown' && !e.repeat) remoteInput(ts);
+    renderAll();
+  }
+
+  function onPointer(e){
+    var t = e.target;
+    if(t && t.closest && t.closest('button,input,textarea,label,a,select')) return;
+    var ts = e.timeStamp || performance.now();
+    if(e.type==='pointerdown') S.taps++;
+    var rec = record(e.type, { ts:ts, key:'('+Math.round(e.clientX)+', '+Math.round(e.clientY)+')', code:e.pointerType||'', note:'screen position' });
+    showLast(rec, null);
+    if(e.type==='pointerdown' && $('acceptTaps').checked) remoteInput(ts);
+    renderAll();
+  }
+  function onOther(e){
+    var ts = e.timeStamp || performance.now();
+    var rec = record(e.type, { ts:ts, note:(e.type==='wheel' ? 'deltaY '+Math.round(e.deltaY) : '') });
+    showLast(rec, null);
+    renderAll();
+  }
+
+  function showLast(rec, e){
+    $('capture').classList.add('live');
+    if(e){
+      $('keyName').textContent = keyLabel(e);
+      $('keySub').textContent = e.type==='keydown' ? (e.repeat ? 'Key held, auto-repeat' : 'Key pressed') : 'Key released';
+      $('f-key').textContent = JSON.stringify(e.key);
+      $('f-code').textContent = e.code ? e.code : '(empty)';
+      $('f-keyCode').textContent = e.keyCode;
+      $('f-repeat').textContent = e.type==='keydown' ? String(e.repeat) : '—';
+    } else {
+      $('keyName').textContent = rec.type;
+      $('keySub').textContent = rec.type.indexOf('pointer')===0 ? 'Screen tap at '+rec.key : 'Non-key event';
+      $('f-key').textContent = '—'; $('f-code').textContent = rec.code||'—';
+      $('f-keyCode').textContent = '—'; $('f-repeat').textContent = '—';
+    }
+    $('f-type').textContent = rec.type;
+    $('f-dt').textContent = rec.dt===null ? 'first event' : ms(rec.dt);
+  }
+
+  /* ---------- verdict ---------- */
+  var WEB_OK = ['Enter','PageDown','PageUp','ArrowRight','ArrowLeft','ArrowDown','ArrowUp','Space','MediaTrackNext','MediaTrackPrevious'];
+  function verdict(){
+    var out = [];
+    var seen = Object.keys(S.keys);
+    if(!S.events.length){
+      out.push({l:'info', tag:'wait', t:'Nothing received yet. Tap the panel, then press the remote. If it still shows nothing, the remote probably sends Volume or camera keys that the browser never passes to web pages, or it is in the wrong mode (many remotes have an iOS/Android switch).'});
+      return out;
+    }
+    if(!S.presses && S.taps){
+      out.push({l:'warn', tag:'tap', t:'The remote arrives as screen taps, not key presses. A web page can read this, but it behaves like touching the screen at a fixed spot.'});
+    }
+    if(seen.length){
+      seen.forEach(function(id){
+        var p = id.split('|');
+        out.push({l:'info', tag:'key', t:'Key "'+(p[0]===' '?'Space':p[0])+'"  code '+(p[1]||'(empty)')+'  keyCode '+p[2]+'  x'+S.keys[id]});
+      });
+      var names = seen.map(function(id){ var k=id.split('|')[0]; return k===' '?'Space':k; });
+      var allOk = names.every(function(n){ return WEB_OK.indexOf(n)>=0; });
+      var vol = names.some(function(n){ return /Volume/i.test(n); });
+      if(allOk) out.push({l:'good', tag:'web', t:'A web app can read this key. Native Android would also work.'});
+      else if(vol) out.push({l:'warn', tag:'vol', t:'A volume key reached the page this time, but the system may also change the volume, and other browsers may block it. A native Android app is the safer choice.'});
+      else out.push({l:'info', tag:'web', t:'The page received this key, so a web app can read it. Check that it is not also triggering something else on the tablet.'});
+      if(seen.length===1) out.push({l:'info', tag:'btn', t:'Only one distinct key so far. If the remote has a second button, press it. One button means "previous page" needs a long press or a tap on the screen.'});
+      else out.push({l:'good', tag:'btn', t:seen.length+' distinct keys: separate next and previous buttons are possible.'});
+    }
+    if(S.presses && !S.releases){
+      out.push({l:'warn', tag:'up', t:'No release events yet. Press and let go again. If releases never arrive, long presses cannot be detected.'});
+    } else if(S.holds.length){
+      var m = median(S.holds);
+      if(m<30) out.push({l:'warn', tag:'hold', t:'Press and release arrive almost together (median '+Math.round(m)+' ms). The remote sends a quick tap, so a long press is probably not detectable from timing.'});
+      else out.push({l:'good', tag:'hold', t:'Press and release arrive separately (median hold '+Math.round(m)+' ms). Long-press detection is feasible: short press = next, long press = previous.'});
+    }
+    if(S.repeats) out.push({l:'info', tag:'rep', t:'Holding the button produces auto-repeat events ('+S.repeats+' seen). Ignore repeats in the app to avoid skipping pages.'});
+    var r = latencySummary();
+    r.forEach(function(x){ out.push(x); });
+    return out;
+  }
+
+  function latencyStats(){
+    var groups = {};
+    results.forEach(function(r){
+      var g = groups[r.sec] || (groups[r.sec] = {sec:r.sec, ok:[], lost:0});
+      if(r.ms===null) g.lost++; else g.ok.push(r.ms);
+    });
+    return groups;
+  }
+  function latencySummary(){
+    var out = [];
+    var g = latencyStats();
+    var base = g[5] && g[5].ok.length ? median(g[5].ok) : null;
+    Object.keys(g).map(Number).sort(function(a,b){return a-b;}).forEach(function(sec){
+      var x = g[sec];
+      if(sec===5) return;
+      if(x.lost){ out.push({l:'warn', tag:'lost', t:x.lost+' press(es) lost after '+sec+' s idle. The remote may sleep and drop the first press.'}); }
+      else if(base!==null && x.ok.length){
+        var d = median(x.ok)-base;
+        out.push({l: d>150 ? 'warn':'good', tag:'wake', t:'After '+sec+' s idle the response was '+(d>=0?'+':'')+Math.round(d)+' ms vs baseline'+(d>150?': possible wake-up delay.':': no clear wake-up delay.')});
+      }
+    });
+    return out;
+  }
+
+  /* ---------- latency test ---------- */
+  function beep(){
+    try{
+      if(!audioCtx) audioCtx = new (window.AudioContext||window.webkitAudioContext)();
+      var o = audioCtx.createOscillator(), g = audioCtx.createGain();
+      o.frequency.value = 880; g.gain.value = 0.08;
+      o.connect(g); g.connect(audioCtx.destination); o.start(); o.stop(audioCtx.currentTime+0.12);
+    }catch(err){}
+  }
+  function clearTimers(t){ if(!t) return; clearTimeout(t.cueTimer); clearTimeout(t.lostTimer); clearInterval(t.tick); }
+  function startTest(sec){
+    if(test){ clearTimers(test); test = null; }
+    try{ if(!audioCtx) audioCtx = new (window.AudioContext||window.webkitAudioContext)(); if(audioCtx.state==='suspended') audioCtx.resume(); }catch(err){}
+    var t = { sec:sec, phase:'idle', startedAt:performance.now(), cueAt:null, early:0 };
+    test = t;
+    t.cueTimer = setTimeout(function(){
+      if(test!==t) return;
+      t.phase = 'cue'; t.cueAt = performance.now(); beep(); renderStage();
+      t.lostTimer = setTimeout(function(){ finishTest(t, null); }, 4000);
+    }, sec*1000 + Math.random()*1500);
+    t.tick = setInterval(renderStage, 250);
+    $('capture').focus();
+    renderStage();
+  }
+  function finishTest(t, value){
+    if(test!==t) return;
+    clearTimers(t); test = null;
+    results.push({ sec:t.sec, ms:value, early:t.early });
+    renderStage(); renderAll();
+  }
+  function remoteInput(ts){
+    if(!test) return;
+    if(test.phase==='idle'){ test.early++; renderStage(); return; }
+    var v = ts - test.cueAt;
+    if(v<0) v = performance.now() - test.cueAt;
+    finishTest(test, v);
+  }
+  function renderStage(){
+    var st = $('stage');
+    if(!test){
+      st.className = '';
+      var last = results[results.length-1];
+      st.innerHTML = last ? '<div class="big">'+(last.ms===null ? 'Lost: no press in 4 s' : Math.round(last.ms)+' ms')+'</div><div class="small">Last run, '+last.sec+' s idle. Pick another length to continue.</div>' : '<div class="big">Pick an idle length</div>';
+      return;
+    }
+    if(test.phase==='idle'){
+      var el = Math.round((performance.now()-test.startedAt)/1000);
+      st.className = '';
+      st.innerHTML = '<div class="big">Hands off the remote</div><div class="small">Idle '+el+' s of '+test.sec+' s. The screen turns teal when you should press.'+(test.early?' Early presses ignored: '+test.early+'.':'')+'</div>';
+    } else {
+      st.className = 'cue';
+      st.innerHTML = '<div class="big">PRESS NOW</div>';
+    }
+  }
+
+  /* ---------- rendering ---------- */
+  function renderAll(){
+    $('t-press').textContent = S.presses;
+    $('t-rel').textContent = S.releases;
+    var m = median(S.holds);
+    $('t-hold').textContent = m===null ? '—' : Math.round(m)+' ms';
+    $('t-keys').textContent = Object.keys(S.keys).length;
+
+    var v = verdict();
+    $('verdict').innerHTML = v.map(function(x){
+      return '<li class="'+x.l+'"><span class="tag">'+x.tag+'</span><span>'+esc(x.t)+'</span></li>';
+    }).join('');
+
+    var rows = S.events.slice(0,60).map(function(r){
+      return '<tr><td>'+r.n+'</td><td>'+r.t.toFixed(3)+'</td><td>'+(r.dt===null?'—':Math.round(r.dt))+'</td><td>'+esc(r.type)+'</td><td>'+esc(r.key)+'</td><td>'+esc(r.code)+'</td><td>'+esc(String(r.keyCode))+'</td><td>'+esc(r.note)+'</td></tr>';
+    }).join('');
+    $('logBody').innerHTML = rows || '<tr><td colspan="8" class="small" style="white-space:normal">Nothing yet. Tap the panel, then press the remote.</td></tr>';
+
+    var g = latencyStats();
+    var base = g[5] && g[5].ok.length ? median(g[5].ok) : null;
+    $('latBody').innerHTML = results.length ? results.map(function(r,i){
+      var d = (r.ms!==null && base!==null && r.sec!==5) ? ((r.ms-base>=0?'+':'')+Math.round(r.ms-base)+' ms') : '—';
+      return '<tr><td>'+(i+1)+'</td><td>'+r.sec+' s</td><td class="'+(r.ms===null?'lost':'')+'">'+(r.ms===null?'LOST':Math.round(r.ms)+' ms')+'</td><td>'+d+'</td><td>'+r.early+'</td></tr>';
+    }).join('') : '<tr><td colspan="5" class="small" style="white-space:normal">No runs yet.</td></tr>';
+
+    $('summary').value = buildSummary(v);
+  }
+
+  function buildSummary(v){
+    var L = [];
+    L.push('Remote key test');
+    L.push('Browser: '+navigator.userAgent);
+    L.push('Screen: '+screen.width+'x'+screen.height);
+    L.push('');
+    L.push('Presses '+S.presses+', releases '+S.releases+', auto-repeats '+S.repeats+', screen taps '+S.taps+', median hold '+(median(S.holds)===null?'n/a':Math.round(median(S.holds))+' ms'));
+    Object.keys(S.keys).forEach(function(id){ var p=id.split('|'); L.push('key="'+p[0]+'" code="'+p[1]+'" keyCode='+p[2]+' count='+S.keys[id]); });
+    L.push('');
+    L.push('Verdict:');
+    v.forEach(function(x){ L.push('- ['+x.tag+'] '+x.t); });
+    L.push('');
+    L.push('Latency runs (idle s, response ms, early presses):');
+    if(!results.length) L.push('none');
+    results.forEach(function(r){ L.push(r.sec+' s, '+(r.ms===null?'LOST':Math.round(r.ms)+' ms')+', early '+r.early); });
+    L.push('');
+    L.push('Last events (n, t s, delta ms, event, key, code, keyCode, note):');
+    S.events.slice(0,30).reverse().forEach(function(r){
+      L.push([r.n, r.t.toFixed(3), r.dt===null?'':Math.round(r.dt), r.type, r.key, r.code, r.keyCode, r.note].join(', '));
+    });
+    return L.join('\n');
+  }
+
+  function esc(s){ return String(s).replace(/[&<>"]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
+
+  function updateFocus(){
+    var on = document.hasFocus() && document.activeElement===$('capture');
+    var p = $('focusPill');
+    p.className = on ? 'pill on' : 'pill';
+    p.textContent = on ? 'Listening' : 'Tap here to start listening';
+  }
+
+  /* ---------- wiring ---------- */
+  window.addEventListener('keydown', onKey, true);
+  window.addEventListener('keyup', onKey, true);
+  document.addEventListener('pointerdown', onPointer, true);
+  document.addEventListener('pointerup', onPointer, true);
+  document.addEventListener('wheel', onOther, {capture:true, passive:true});
+  document.addEventListener('contextmenu', onOther, true);
+  $('capture').addEventListener('click', function(){ $('capture').focus(); updateFocus(); });
+  $('capture').addEventListener('focus', updateFocus);
+  $('capture').addEventListener('blur', updateFocus);
+  window.addEventListener('focus', updateFocus);
+  window.addEventListener('blur', updateFocus);
+  setInterval(updateFocus, 700);
+
+  Array.prototype.forEach.call(document.querySelectorAll('button[data-sec]'), function(b){
+    b.addEventListener('click', function(){ startTest(Number(b.getAttribute('data-sec'))); });
+  });
+  $('cancelTest').addEventListener('click', function(){ if(test){ clearTimers(test); test = null; } renderStage(); $('capture').focus(); });
+  $('clearLat').addEventListener('click', function(){ results = []; renderStage(); renderAll(); });
+  $('clearLog').addEventListener('click', function(){
+    S = fresh();
+    $('keyName').textContent = '—'; $('keySub').textContent = 'Waiting for the first press';
+    ['f-type','f-key','f-code','f-keyCode','f-repeat','f-dt'].forEach(function(id){ $(id).textContent = '—'; });
+    $('capture').classList.remove('live');
+    renderAll(); $('capture').focus();
+  });
+  $('copyBtn').addEventListener('click', function(){
+    var ta = $('summary'), msg = $('copyMsg');
+    function fallback(){
+      try{ ta.focus(); ta.select(); var ok = document.execCommand && document.execCommand('copy'); msg.textContent = ok ? 'Copied.' : 'Select the text above and copy it.'; }
+      catch(err){ msg.textContent = 'Select the text above and copy it.'; }
+    }
+    try{
+      if(navigator.clipboard && navigator.clipboard.writeText){
+        navigator.clipboard.writeText(ta.value).then(function(){ msg.textContent = 'Copied.'; }, fallback);
+      } else fallback();
+    }catch(err){ fallback(); }
+  });
+
+  renderAll(); renderStage(); updateFocus();
+})();
+</script>
+</body>
+</html>

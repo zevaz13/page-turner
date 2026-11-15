@@ -1,0 +1,15 @@
+# adb shell getevent -lt /dev/input/event14   (device name: "Bluetooth remote RL7")
+# 2026-11-13. Labeled capture: first press = button labeled "Android", second press = button labeled "iOS".
+# Both produce identical events (KEY_VOLUMEUP, MSC_SCAN 000c00e9). Hold times: 266 ms (Android), 241 ms (iOS).
+[  671206.478190] EV_MSC       MSC_SCAN             000c00e9
+[  671206.478190] EV_KEY       KEY_VOLUMEUP         DOWN
+[  671206.478190] EV_SYN       SYN_REPORT           00000000
+[  671206.743997] EV_MSC       MSC_SCAN             000c00e9
+[  671206.743997] EV_KEY       KEY_VOLUMEUP         UP
+[  671206.743997] EV_SYN       SYN_REPORT           00000000
+[  671208.640706] EV_MSC       MSC_SCAN             000c00e9
+[  671208.640706] EV_KEY       KEY_VOLUMEUP         DOWN
+[  671208.640706] EV_SYN       SYN_REPORT           00000000
+[  671208.881857] EV_MSC       MSC_SCAN             000c00e9
+[  671208.881857] EV_KEY       KEY_VOLUMEUP         UP
+[  671208.881857] EV_SYN       SYN_REPORT           00000000

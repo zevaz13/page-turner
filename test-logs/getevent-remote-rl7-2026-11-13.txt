@@ -1,0 +1,33 @@
+# adb shell getevent -lt /dev/input/event14   (device name: "Bluetooth remote RL7")
+# 2026-11-13. Shutter button only (Volume Up). Tablet: Samsung, serial redacted.
+# Hold times (UP minus DOWN): 214 ms, 218 ms, 299 ms, 4208 ms (long hold), 505 ms
+[  670916.524668] EV_MSC       MSC_SCAN             000c00e9
+[  670916.524668] EV_KEY       KEY_VOLUMEUP         DOWN
+[  670916.524668] EV_SYN       SYN_REPORT           00000000
+[  670916.738825] EV_MSC       MSC_SCAN             000c00e9
+[  670916.738825] EV_KEY       KEY_VOLUMEUP         UP
+[  670916.738825] EV_SYN       SYN_REPORT           00000000
+[  670917.118364] EV_MSC       MSC_SCAN             000c00e9
+[  670917.118364] EV_KEY       KEY_VOLUMEUP         DOWN
+[  670917.118364] EV_SYN       SYN_REPORT           00000000
+[  670917.336191] EV_MSC       MSC_SCAN             000c00e9
+[  670917.336191] EV_KEY       KEY_VOLUMEUP         UP
+[  670917.336191] EV_SYN       SYN_REPORT           00000000
+[  670917.750321] EV_MSC       MSC_SCAN             000c00e9
+[  670917.750321] EV_KEY       KEY_VOLUMEUP         DOWN
+[  670917.750321] EV_SYN       SYN_REPORT           00000000
+[  670918.049786] EV_MSC       MSC_SCAN             000c00e9
+[  670918.049786] EV_KEY       KEY_VOLUMEUP         UP
+[  670918.049786] EV_SYN       SYN_REPORT           00000000
+[  670919.012601] EV_MSC       MSC_SCAN             000c00e9
+[  670919.012601] EV_KEY       KEY_VOLUMEUP         DOWN
+[  670919.012601] EV_SYN       SYN_REPORT           00000000
+[  670923.220849] EV_MSC       MSC_SCAN             000c00e9
+[  670923.220849] EV_KEY       KEY_VOLUMEUP         UP
+[  670923.220849] EV_SYN       SYN_REPORT           00000000
+[  670924.918380] EV_MSC       MSC_SCAN             000c00e9
+[  670924.918380] EV_KEY       KEY_VOLUMEUP         DOWN
+[  670924.918380] EV_SYN       SYN_REPORT           00000000
+[  670925.423440] EV_MSC       MSC_SCAN             000c00e9
+[  670925.423440] EV_KEY       KEY_VOLUMEUP         UP
+[  670925.423440] EV_SYN       SYN_REPORT           00000000
