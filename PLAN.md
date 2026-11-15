@@ -6,7 +6,7 @@ Where we discuss decisions and tick off milestones. Measurements and findings st
 
 - [x] **M-1 Feasibility** (2026-11-13): the remote sends Volume Up with separate press and release, two identical buttons, no kernel auto-repeat. Web route ruled out.
 - [ ] **M0 Setup and measurements**
-  - [x] Git repository (2026-11-15)
+  - [x] Git repository (2026-11-15), pushed to private GitHub repo `zevaz13/page-turner`
   - [x] Wireless adb connected (2026-11-15)
   - [x] Tablet details recorded (2026-11-15): SM-T733, Android 14, SDK 34
   - [ ] Toolchain plan approved
@@ -67,7 +67,7 @@ Android Studio and the emulator are not planned.
 3. **Time for the wake-up test**: about 10 minutes with the remote, ideally done with your foot.
 4. **App ID**, e.g. `xyz.pageturner.keylab`. It is permanent once installed; changing it later means a reinstall that loses app data.
 5. **Your sheet music PDFs**: mostly scanned (images) or engraved (vector, e.g. from MuseScore)? Rough page count and file size? This affects render speed and caching in M2, not M1.
-6. **Git remote**: local only for now, or push to GitHub (private)?
+6. ~~Git remote~~: private GitHub repo, SSH remote `origin` (2026-11-15).
 
 ## Decision log
 
@@ -78,7 +78,7 @@ Android Studio and the emulator are not planned.
 | D3 | 2026-11-13 | Short press = next page; previous page = double tap or long press | Both buttons send the same key | Thresholds to validate with foot presses |
 | D4 | 2026-11-13 | Foreground-only key handling (consume in `onKeyDown`/`onKeyUp`, ignore `repeatCount > 0`) | Simple, no accessibility permissions | Done |
 | D5 | 2026-11-13 | Terminal toolchain (JDK, cmdline-tools, Gradle), no Android Studio | Lighter; the adb loop is enough | Install pending approval |
-| D6 | 2026-11-15 | Git repo in `page-turner/`; small commits; build outputs and `local.properties` ignored | Track code and docs history | Done |
+| D6 | 2026-11-15 | Git repo in `page-turner/`; small commits; build outputs and `local.properties` ignored | Track code and docs history | Done; remote is a private GitHub repo (SSH) |
 | D7 | 2026-11-15 | Run the wake-up test before the toolchain install | Its result may change the design | Proposed |
 | D8 | 2026-11-15 | Wireless debugging is the default adb connection; USB is the fallback | Few USB ports; the tablet stays free on the music stand | Trial: log drops and port changes |
 
@@ -87,5 +87,4 @@ Android Studio and the emulator are not planned.
 - Is the waking press lost? (M0 step 3)
 - Double tap or long press for "previous"? A double tap delays every "next" by the double-tap window (~400 ms) unless "next" fires on the first press and a second press reverses it. Decide after KeyLab shows real foot timings.
 - Package and app name.
-- Git remote, if any.
 - How stable is wireless adb? (Drops, port changes after sleep.)
