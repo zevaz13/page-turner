@@ -1,0 +1,53 @@
+# Idle wake-up test, remote "Bluetooth remote RL7", tablet SM-T733 (Android 14), 2026-11-15.
+# Capture: adb (wireless) shell getevent -lt | grep -E "add device|remove device|name:|KEY_", each line prefixed with host time (HH:MM:SS.mmm).
+# Foot presses on the "Android" button.
+# Trial 1: remote idle for days (already disconnected at start). One press at ~13:34:30, a second deliberate press at ~13:34:33.
+# Trial 2: remote disconnected by itself at 13:39:34 (300 s after the last release). Press at ~13:41:12, a second press at ~13:41:25.
+# Result: trial 1 waking press DELIVERED (0.53 s after add device). Trial 2 waking press LOST (reconnect only, no key, no volume change).
+# Ground truth for delivery is the Android audio log below (one ADJUST_RAISE per delivered press); tablet clock runs ~0.4-0.6 s ahead of the host clock.
+#
+# start host 2026-11-15 13:33:08.552
+13:33:08.734 add device 1: /dev/input/event13
+13:33:08.736   name:     "Book Cover Keyboard Slim (EF-DT730)"
+13:33:08.738 add device 2: /dev/input/event12
+13:33:08.740   name:     "sec_e-pen"
+13:33:08.742 add device 3: /dev/input/event11
+13:33:08.744   name:     "hall_logical"
+13:33:08.746 add device 4: /dev/input/event10
+13:33:08.748   name:     "sec_touchpad"
+13:33:08.750 add device 5: /dev/input/event9
+13:33:08.752   name:     "sec_touchscreen"
+13:33:08.754 add device 6: /dev/input/event8
+13:33:08.755   name:     "hall"
+13:33:08.757 add device 7: /dev/input/event7
+13:33:08.759   name:     "hall_wacom"
+13:33:08.761 add device 8: /dev/input/event3
+13:33:08.763   name:     "grip_notifier"
+13:33:08.764 add device 9: /dev/input/event1
+13:33:08.766   name:     "meta_event"
+13:33:08.768 add device 10: /dev/input/event0
+13:33:08.770   name:     "qpnp_pon"
+13:33:08.771 add device 11: /dev/input/event2
+13:33:08.773   name:     "grip_sensor"
+13:33:08.775 add device 12: /dev/input/event5
+13:33:08.776   name:     "grip_notifier"
+13:33:08.778 add device 13: /dev/input/event4
+13:33:08.779   name:     "grip_sensor_wifi"
+13:33:08.781 add device 14: /dev/input/event6
+13:33:08.783   name:     "gpio-keys"
+13:34:29.933 add device 15: /dev/input/event14
+13:34:29.935   name:     "Bluetooth remote RL7"
+13:34:30.461 [  694184.893790] /dev/input/event14: EV_KEY       KEY_VOLUMEUP         DOWN                
+13:34:30.739 [  694185.173963] /dev/input/event14: EV_KEY       KEY_VOLUMEUP         UP                  
+13:34:33.901 [  694188.331258] /dev/input/event14: EV_KEY       KEY_VOLUMEUP         DOWN                
+13:34:34.170 [  694188.602971] /dev/input/event14: EV_KEY       KEY_VOLUMEUP         UP                  
+13:39:34.446 remove device 15: /dev/input/event14
+13:41:12.995 add device 15: /dev/input/event14
+13:41:12.997   name:     "Bluetooth remote RL7"
+13:41:25.876 [  694600.307412] /dev/input/event14: EV_KEY       KEY_VOLUMEUP         DOWN                
+13:41:26.019 [  694600.461987] /dev/input/event14: EV_KEY       KEY_VOLUMEUP         UP                  
+#
+# --- adb shell dumpsys audio | grep adjustSuggestedStreamVolume (tablet clock) ---
+# 11-15 13:34:31:112 adjustSuggestedStreamVolume(sugg:USE_DEFAULT_STREAM_TYPE dir:ADJUST_RAISE flags:0x1011) from android/android uid:1000
+# 11-15 13:34:34:543 adjustSuggestedStreamVolume(sugg:USE_DEFAULT_STREAM_TYPE dir:ADJUST_RAISE flags:0x1011) from android/android uid:1000
+# 11-15 13:41:26:522 adjustSuggestedStreamVolume(sugg:USE_DEFAULT_STREAM_TYPE dir:ADJUST_RAISE flags:0x1011) from android/android uid:1000

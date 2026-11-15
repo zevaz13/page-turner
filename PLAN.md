@@ -11,7 +11,8 @@ Where we discuss decisions and tick off milestones. Measurements and findings st
   - [x] Tablet details recorded (2026-11-15): SM-T733, Android 14, SDK 34
   - [ ] Toolchain plan approved
   - [ ] Toolchain installed and checked with a "hello" APK on the tablet
-  - [ ] Idle wake-up test: is the first press after idle lost?
+  - [x] Idle wake-up test, first pass (2026-11-15): 5-min idle timeout; waking press lost in 1 of 2 trials
+  - [ ] Waking-press loss rate: 5-10 more trials
   - [ ] Foot-press hold times measured
 - [ ] **M1 KeyLab**: key logger, gesture classifier, wake-up latency mode, CSV export (spec in `CLAUDE.md`).
 - [ ] **M2 PDF viewer**: `PdfRenderer`, document picker, fit-to-width, remote turns, last page remembered per file.
@@ -84,7 +85,7 @@ Android Studio and the emulator are not planned.
 
 ## Open questions
 
-- Is the waking press lost? (M0 step 3)
+- Waking press: lost in 1 of 2 trials (2026-11-15). What is the rate, and does it depend on sleep length or hold time? Design options if it is frequent: (a) a deliberate wake tap after a pause of more than 5 min, with the app showing whether the remote is connected; (b) the app ignores nothing and the player re-presses when the page does not turn; (c) a custom pedal (upgrade path). The app can show connection status, because Android reports input devices being added and removed (`InputManager.InputDeviceListener`).
 - Double tap or long press for "previous"? A double tap delays every "next" by the double-tap window (~400 ms) unless "next" fires on the first press and a second press reverses it. Decide after KeyLab shows real foot timings.
 - Package and app name.
 - How stable is wireless adb? (Drops, port changes after sleep.)

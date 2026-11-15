@@ -72,6 +72,12 @@ Leave it running, do not touch the remote for about 5 minutes, then press the An
 - `KEY_VOLUMEUP DOWN`/`UP` after the press: the first press got through. If not, a second press was needed.
 - Note how long the press felt to take effect.
 
+**Checking whether a press reached Android** (ground truth; getevent can miss an event right after the device node appears):
+```
+adb shell dumpsys audio | grep adjustSuggestedStreamVolume
+```
+One `ADJUST_RAISE` line per delivered Volume Up, stamped with the tablet's clock (it ran about 0.4-0.6 s ahead of the computer on 2026-11-15). The remote disconnects after 5 minutes idle, so a wake-up trial needs a wait of more than 5 minutes after the last press.
+
 **d) Computing hold times from a saved log**
 ```
 awk '/KEY_VOLUMEUP +DOWN/{t=$2+0} /KEY_VOLUMEUP +UP/{printf "hold %.0f ms\n",($2+0-t)*1000}' press.log

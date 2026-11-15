@@ -39,10 +39,16 @@ Helper (built 2026-11-12): `key-tester.html` in this folder, also hosted at http
   - No extra DOWN events during the 4.2 s hold: no kernel-level auto-repeat. (Android may still synthesize repeats in the framework; the app should check repeatCount.)
   - Conclusion: long-press detection is feasible (short taps were ~200-300 ms by hand; a threshold of roughly 600-800 ms would separate them; foot presses still to be measured).
   - One-time observation: the input device node `/dev/input/event14` did not exist after the remote had been idle ("No such file") and reappeared at the same path after pressing the button. Suggests the remote disconnects when idle and reconnects on press. Not yet confirmed with add/remove device lines or a lost-press test.
-- Still to measure: foot-press hold times, and the idle wake-up behavior (is the press that wakes the remote lost?). Options: `adb shell getevent -lt | grep -E "add device|remove device|name:|KEY_"` across a 2-3 minute idle gap, an existing reader app, or the native KeyLab app.
+- 2026-11-15, idle wake-up test over wireless adb (raw: `test-logs/wake-test-remote-rl7-sm-t733-2026-11-15.txt`). Foot presses, Android button. Delivery checked against Android's audio log (`dumpsys audio`, one `ADJUST_RAISE` per delivered press), which is the ground truth; getevent alone could miss an event that arrives right after the device node appears.
+  - **Verified: idle timeout is 5 minutes.** The remote disconnected (`remove device`) 300.3 s after the last release.
+  - **Verified: the waking press is sometimes lost.** Trial 1 (idle for days): the waking press reconnected the remote and was delivered 0.53 s after `add device` (280 ms hold). Trial 2 (about 1.5 min after the 5-min disconnect): the press reconnected the remote but produced no key event and no volume change. The next press 12.9 s later worked. 1 of 2 waking presses lost; too few trials to give a rate.
+  - Presses while connected: all delivered (3 of 3 today). No duplicate events.
+  - Foot-press holds today: 280, 272, 155 ms (similar to hand taps).
+  - Felt latency: "really quick" when delivered.
+- Still to measure: the waking-press loss rate (5-10 more trials), whether it depends on sleep length or hold time, and more foot-press hold times. Earlier note, superseded by the test above: the idle wake-up behavior (is the press that wakes the remote lost?). Options: `adb shell getevent -lt | grep -E "add device|remove device|name:|KEY_"` across a 2-3 minute idle gap, an existing reader app, or the native KeyLab app.
 
 ## Risks
-- Sleep/wake latency may drop the first press. Early evidence: the remote's input device vanished while idle (see Test results).
+- **Confirmed 2026-11-15: the first press after more than 5 min idle can be lost** (1 of 2 trials). Needs a rate and a design answer (see PLAN.md).
 - Both buttons send the same Volume Up, so "previous page" must come from a long press or double tap (or a screen tap). A second identical remote would not help.
 - Remote is not designed for foot use: may slide or get stepped on. Fix: velcro it to a board or wedge; later a 3D-printed housing.
 - Confirmed: the system intercepts Volume Up before web pages see it, so a web app cannot use this remote.
@@ -88,6 +94,7 @@ Stretch (ties into other backlog projects):
 - Soundhouse DIY page-turning pedal guide: https://www.soundhouse.co.jp/en/contents/column/index?post=4114
 
 ## Log
+- 2026-11-15: Idle wake-up test. Remote disconnects after exactly 5 min idle. Waking press delivered in trial 1, lost in trial 2. More trials needed.
 - 2026-11-15: Git repo and PLAN.md created. Paired and connected over wireless debugging. Tablet: SM-T733, Android 14 / SDK 34, on 5 GHz Wi-Fi. Next: idle wake-up test, then the toolchain install.
 - 2026-11-13: Labeled capture confirms the two buttons (Android / iOS) are identical: both Volume Up. adb installed and tablet authorized. getevent shows separate press/release with ~200-500 ms hand holds, no kernel auto-repeat; remote seems to disconnect when idle. Next: idle/lost-press test, other buttons.
 - 2026-11-13: Remote sends Volume Up; web tester sees nothing; decided on a native Android app. Next: measure timing/latency (adb getevent, existing reader, or KeyLab app).
